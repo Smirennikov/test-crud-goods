@@ -1,0 +1,48 @@
+version: "3.3"
+services:
+  db:
+    container_name: test-crud-goods-db
+    image: postgres:14.2-alpine  
+    # restart: always
+    env_file:
+      - dev.env
+    ports:
+      - 54321:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+  cache:
+    container_name: test-crud-goods-cache
+    image: redis:6.2-alpine
+    ports:
+      - 63791:6379
+    env_file:
+      - dev.env
+    volumes: 
+      - cache:/bitnami/redis/data
+  clickhouse:
+    container_name: test-crud-goods-clickhouse
+    image: clickhouse/clickhouse-server:24.2-alpine
+    ports:
+      - 8123:8123
+      - 9000:9000/tcp
+    env_file:
+      - dev.env
+    volumes:
+      - clickhouse:/var/lib/clickhouse
+  nats:
+    container_name: test-crud-goods-nats
+    image: nats:2.10.11-alpine3.19
+    ports:
+      - 4222:4222
+      - 8222:8222
+      - 6222:6222
+
+
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
+  clickhouse:
+    driver: local

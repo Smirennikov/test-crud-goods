@@ -1,0 +1,21 @@
+run:
+  show-stats: true
+output:
+  sort-results: true
+linters:
+  enable:
+    - bidichk
+    - contextcheck
+    - exportloopref
+    - noctx
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - mirror
+    - unconvert
+    - zerologlint
+    - goconst
+linters-settings:
+  govet:
+    disable:
+      - composites
