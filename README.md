@@ -1,4 +1,5 @@
-# test task for create CRUD with writing logs to ClickHouse through NATS
+# Test task
+The app implements basic operations with data known as CRUD. Here uses Postgres as the main database, Redis for cache, NATS and ClickHouse for processing logs.
 
 ## How to run dev environment for app
 `docker-compose -f docker-compose.dev.yml up -d`
