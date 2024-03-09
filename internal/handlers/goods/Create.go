@@ -2,10 +2,8 @@ package goods
 
 import (
 	"context"
-	"encoding/json"
 	"test-crud-goods/internal/models"
 	"test-crud-goods/internal/utils/errors"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -39,19 +37,16 @@ func (h *handlers) Create(ctx *fiber.Ctx) error {
 
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
-	good, _ := getGood(list)
-
-	jsonGood, err := json.Marshal(good)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(err)
-	}
-	if err := h.cache.Set(ctx.Context(), ctx.OriginalURL(), jsonGood, time.Minute).Err(); err != nil {
+	good, found := getGood(list)
+	if !found {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
 
+	if err := h.updateCache(ctx, *good); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
+	}
 	if err := h.logEvent(good.GetLogEvent()); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
-
 	return ctx.Status(fiber.StatusOK).JSON(good)
 }

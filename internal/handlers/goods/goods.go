@@ -5,7 +5,9 @@ import (
 	"test-crud-goods/internal/models"
 	"test-crud-goods/internal/store"
 	"test-crud-goods/internal/utils/consts"
+	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -40,4 +42,12 @@ func (h *handlers) logEvent(lg models.GoodLogEvent) (err error) {
 		return err
 	}
 	return h.nats.Publish(consts.LogsQueue, bytes)
+}
+
+func (h *handlers) updateCache(ctx *fiber.Ctx, good models.Good) (err error) {
+	bytes, err := json.Marshal(good)
+	if err != nil {
+		return err
+	}
+	return h.cache.Set(ctx.Context(), ctx.OriginalURL(), bytes, time.Minute).Err()
 }
