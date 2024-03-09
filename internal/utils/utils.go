@@ -2,17 +2,14 @@ package utils
 
 import "time"
 
-func Debounce(interval time.Duration, input chan string, cb func(arg string)) {
-	var item string
+func Debounce(interval time.Duration, wait chan struct{}, cb func()) {
 	timer := time.NewTimer(interval)
 	for {
 		select {
-		case item = <-input:
+		case <-wait:
 			timer.Reset(interval)
 		case <-timer.C:
-			if item != "" {
-				cb(item)
-			}
+			cb()
 		}
 	}
 }

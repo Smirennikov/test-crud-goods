@@ -4,6 +4,7 @@ go 1.21.4
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.20.0
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/fatih/color v1.16.0
 	github.com/gofiber/contrib/fiberzerolog v0.2.3
 	github.com/gofiber/fiber/v2 v2.52.2
