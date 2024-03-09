@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"test-crud-goods/pkg/closer"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/redis/go-redis/v9"
@@ -34,7 +35,7 @@ func Config() redisCfg {
 	return *cfg
 }
 
-func Connect(logger *zerolog.Logger, db int, host, port, password string) (*redis.Client, error) {
+func Connect(closer closer.Closer, logger *zerolog.Logger, db int, host, port, password string) (*redis.Client, error) {
 	addr := net.JoinHostPort(host, port)
 
 	rdb := redis.NewClient(&redis.Options{
@@ -46,6 +47,7 @@ func Connect(logger *zerolog.Logger, db int, host, port, password string) (*redi
 	if err != nil {
 		return nil, err
 	}
+	closer.Add(rdb.Close)
 
 	logger.Info().Msg(fmt.Sprintf("Redis successfully connected %s", addr))
 	return rdb, nil

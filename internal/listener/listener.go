@@ -69,7 +69,10 @@ func (srv *listener) ListenLogs() error {
 			if err == nats.ErrTimeout {
 				continue
 			}
-			srv.logger.Fatal().Err(err).Msg("batch send")
+			if err == nats.ErrConnectionClosed {
+				return nil
+			}
+			srv.logger.Fatal().Err(err).Msg("next message")
 		}
 		eventChan <- struct{}{}
 

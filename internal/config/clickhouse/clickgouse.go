@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"test-crud-goods/pkg/closer"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/rs/zerolog"
@@ -36,7 +37,7 @@ func Config() clickhouseCfg {
 	return *cfg
 }
 
-func Connect(logger *zerolog.Logger, host, port, database, username, password string) (driver.Conn, error) {
+func Connect(closer closer.Closer, logger *zerolog.Logger, host, port, database, username, password string) (driver.Conn, error) {
 	var (
 		ctx       = context.Background()
 		conn, err = clickhouse.Open(&clickhouse.Options{
@@ -63,6 +64,7 @@ func Connect(logger *zerolog.Logger, host, port, database, username, password st
 		return nil, err
 	}
 
+	closer.Add(conn.Close)
 	logger.Info().Msg(fmt.Sprintf("Clickhouse successfully connected %s:%s", host, port))
 	return conn, nil
 }

@@ -3,6 +3,7 @@ package nats
 import (
 	"fmt"
 	"sync"
+	"test-crud-goods/pkg/closer"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/nats-io/nats.go"
@@ -29,11 +30,16 @@ func Config() natsCfg {
 	return *cfg
 }
 
-func Connect(logger *zerolog.Logger, url string) (*nats.Conn, error) {
+func Connect(closer closer.Closer, logger *zerolog.Logger, url string) (*nats.Conn, error) {
 	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
+
+	closer.Add(func() (err error) {
+		conn.Close()
+		return
+	})
 
 	logger.Info().Msg(fmt.Sprintf("Nats successfully connected %s", url))
 	return conn, nil

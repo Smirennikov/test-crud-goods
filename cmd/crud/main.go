@@ -79,6 +79,7 @@ func main() {
 func runServer(closer closer.Closer, logger zerolog.Logger) error {
 
 	pg_pool, err := postgres.Connect(
+		closer,
 		&logger,
 		postgres.Config().Host,
 		postgres.Config().Port,
@@ -89,9 +90,9 @@ func runServer(closer closer.Closer, logger zerolog.Logger) error {
 	if err != nil {
 		return err
 	}
-	defer pg_pool.Close()
 
 	clickhouse_conn, err := clickhouse.Connect(
+		closer,
 		&logger,
 		clickhouse.Config().Host,
 		clickhouse.Config().Port,
@@ -102,9 +103,9 @@ func runServer(closer closer.Closer, logger zerolog.Logger) error {
 	if err != nil {
 		return err
 	}
-	defer clickhouse_conn.Close()
 
 	redis, err := redis.Connect(
+		closer,
 		&logger,
 		redis.Config().Db,
 		redis.Config().Host,
@@ -114,16 +115,15 @@ func runServer(closer closer.Closer, logger zerolog.Logger) error {
 	if err != nil {
 		return err
 	}
-	defer redis.Close()
 
 	nats, err := nats.Connect(
+		closer,
 		&logger,
 		nats.Config().URL,
 	)
 	if err != nil {
 		return err
 	}
-	defer nats.Close()
 
 	s := store.New(goods.New(pg_pool), logs.New(clickhouse_conn))
 
@@ -133,6 +133,7 @@ func runServer(closer closer.Closer, logger zerolog.Logger) error {
 func runLogsListener(closer closer.Closer, logger zerolog.Logger) error {
 
 	pg_pool, err := postgres.Connect(
+		closer,
 		&logger,
 		postgres.Config().Host,
 		postgres.Config().Port,
@@ -143,9 +144,9 @@ func runLogsListener(closer closer.Closer, logger zerolog.Logger) error {
 	if err != nil {
 		return err
 	}
-	defer pg_pool.Close()
 
 	clickhouse_conn, err := clickhouse.Connect(
+		closer,
 		&logger,
 		clickhouse.Config().Host,
 		clickhouse.Config().Port,
@@ -156,16 +157,15 @@ func runLogsListener(closer closer.Closer, logger zerolog.Logger) error {
 	if err != nil {
 		return err
 	}
-	defer clickhouse_conn.Close()
 
 	nats, err := nats.Connect(
+		closer,
 		&logger,
 		nats.Config().URL,
 	)
 	if err != nil {
 		return err
 	}
-	defer nats.Close()
 
 	s := store.New(goods.New(pg_pool), logs.New(clickhouse_conn))
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"test-crud-goods/pkg/closer"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,7 +35,7 @@ func Config() postgresCfg {
 	return *cfg
 }
 
-func Connect(logger *zerolog.Logger, host, port, user, password, dbname string) (*pgxpool.Pool, error) {
+func Connect(closer closer.Closer, logger *zerolog.Logger, host, port, user, password, dbname string) (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host,
 		port,
@@ -50,7 +51,10 @@ func Connect(logger *zerolog.Logger, host, port, user, password, dbname string) 
 	if err := conn.Ping(context.Background()); err != nil {
 		return nil, err
 	}
-
+	closer.Add(func() (err error) {
+		conn.Close()
+		return
+	})
 	logger.Info().Msg(fmt.Sprintf("Postgres pool successfully connected %s:%s", host, port))
 	return conn, nil
 }
