@@ -9,7 +9,7 @@ func (s *server) configureHandlers() {
 	v1 := s.router.Group("/v1")
 	goodsGroup := v1.Group("/goods")
 
-	goodsGroup.Get("/list", s.verifyCache, goodsHandlers.List)
+	goodsGroup.Get("/list", goodsHandlers.CachedList, goodsHandlers.List)
 	goodsGroup.Post("/create", goodsHandlers.Create)
 	goodsGroup.Patch("/update", goodsHandlers.Update)
 	goodsGroup.Patch("/reprioritize", goodsHandlers.Reprioritize)

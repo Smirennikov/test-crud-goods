@@ -50,7 +50,7 @@ func (h *handlers) Reprioritize(ctx *fiber.Ctx) error {
 	for _, g := range goods {
 		priorities = append(priorities, fiber.Map{"id": g.ID, "priority": g.Priority})
 
-		if err := h.updateCache(ctx, g); err != nil {
+		if err := h.updateCache(g); err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 		}
 		if err := h.logEvent(g.GetLogEvent()); err != nil {

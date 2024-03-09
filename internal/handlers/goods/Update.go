@@ -44,7 +44,7 @@ func (h *handlers) Update(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
 
-	if err := h.updateCache(ctx, *good); err != nil {
+	if err := h.updateCache(*good); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
 	if err := h.logEvent(good.GetLogEvent()); err != nil {

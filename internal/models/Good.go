@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Good struct {
 	ID          int       `json:"id"`
@@ -10,6 +13,10 @@ type Good struct {
 	Priority    int       `json:"priority"`
 	Removed     bool      `json:"removed"`
 	CreatedAt   time.Time `json:"createdAt"`
+}
+
+func (g *Good) Key() string {
+	return fmt.Sprintf("id=%d&projectId=%d", g.ID, g.ProjectID)
 }
 
 type UpdateGoodBody struct {

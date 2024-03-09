@@ -1,29 +1,26 @@
 package goods
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
 	"test-crud-goods/internal/models"
 	"test-crud-goods/internal/utils/errors"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/sync/errgroup"
 )
 
 const (
-	defaultLimit  = 10
-	defaultOffset = 1
+	defaultLimit      = 10
+	defaultOffset     = 1
+	cacheGoodsListKey = "/goods/list"
 )
 
 func (h *handlers) List(ctx *fiber.Ctx) error {
 
-	limit := ctx.QueryInt("limit")
-	offset := ctx.QueryInt("offset")
-
-	if _, ok := ctx.Queries()["limit"]; !ok {
-		limit = defaultLimit
-	}
-	if _, ok := ctx.Queries()["offset"]; !ok {
-		offset = defaultOffset
-	}
+	opts := getListOptions(ctx)
 
 	g, gCtx := errgroup.WithContext(ctx.Context())
 
@@ -40,7 +37,7 @@ func (h *handlers) List(ctx *fiber.Ctx) error {
 		return
 	})
 	g.Go(func() (err error) {
-		list, err = h.store.Goods.List(gCtx, models.GoodsFilter{}, models.GoodsOptions{Limit: limit, Offset: offset})
+		list, err = h.store.Goods.List(gCtx, models.GoodsFilter{}, opts)
 		if err != nil {
 			h.logger.Error().Err(err).Str("url", ctx.OriginalURL()).Msg("goods list")
 			return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
@@ -52,13 +49,101 @@ func (h *handlers) List(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	goodsIDs := make([]string, 0, len(list))
+	for _, g := range list {
+		goodsIDs = append(goodsIDs, g.Key())
+		bytes, err := json.Marshal(g)
+		if err != nil {
+			return err
+		}
+		h.cache.Set(ctx.Context(), cacheGoodsListKey+"?"+g.Key(), bytes, time.Minute)
+	}
+
+	h.cache.Set(
+		ctx.Context(),
+		fmt.Sprintf("%s/meta/total?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset),
+		meta.Total,
+		time.Minute,
+	)
+	h.cache.Set(
+		ctx.Context(),
+		fmt.Sprintf("%s/meta/removed?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset),
+		meta.Removed,
+		time.Minute,
+	)
+	h.cache.Set(
+		ctx.Context(),
+		fmt.Sprintf("%s?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset),
+		strings.Join(goodsIDs, ","),
+		time.Minute,
+	)
+
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"meta": fiber.Map{
 			"total":   meta.Total,
 			"removed": meta.Removed,
-			"limit":   limit,
-			"offset":  offset,
+			"limit":   opts.Limit,
+			"offset":  opts.Offset,
 		},
 		"goods": list,
 	})
+}
+
+func (h *handlers) CachedList(ctx *fiber.Ctx) error {
+
+	opts := getListOptions(ctx)
+
+	total, err := h.cache.Get(ctx.Context(), fmt.Sprintf("%s/meta/total?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset)).Int()
+	if err != nil {
+		return ctx.Next()
+	}
+	removed, err := h.cache.Get(ctx.Context(), fmt.Sprintf("%s/meta/removed?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset)).Int()
+	if err != nil {
+		return ctx.Next()
+	}
+	goodIDs, err := h.cache.Get(ctx.Context(), fmt.Sprintf("%s?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset)).Result()
+	if err != nil {
+		return ctx.Next()
+	}
+
+	var list []models.Good
+	for _, goodKey := range strings.Split(goodIDs, ",") {
+		result, err := h.cache.Get(ctx.Context(), "/goods/list?"+goodKey).Bytes()
+		if err != nil {
+			return ctx.Next()
+		}
+		var good models.Good
+		if err := json.Unmarshal(result, &good); err != nil {
+			return ctx.Next()
+		}
+		list = append(list, good)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"meta": fiber.Map{
+			"total":   total,
+			"removed": removed,
+			"limit":   opts.Limit,
+			"offset":  opts.Offset,
+		},
+		"goods": list,
+	})
+}
+
+func getListOptions(ctx *fiber.Ctx) models.GoodsOptions {
+
+	limit := ctx.QueryInt("limit")
+	offset := ctx.QueryInt("offset")
+
+	if _, ok := ctx.Queries()["limit"]; !ok {
+		limit = defaultLimit
+	}
+	if _, ok := ctx.Queries()["offset"]; !ok {
+		offset = defaultOffset
+	}
+
+	return models.GoodsOptions{
+		Limit:  limit,
+		Offset: offset,
+	}
 }
