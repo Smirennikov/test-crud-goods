@@ -61,13 +61,13 @@ func (h *handlers) List(ctx *fiber.Ctx) error {
 
 	h.cache.Set(
 		ctx.Context(),
-		fmt.Sprintf("%s/meta/total?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset),
+		cacheGoodsListKey+"/meta/total",
 		meta.Total,
 		time.Minute,
 	)
 	h.cache.Set(
 		ctx.Context(),
-		fmt.Sprintf("%s/meta/removed?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset),
+		cacheGoodsListKey+"/meta/removed",
 		meta.Removed,
 		time.Minute,
 	)
@@ -93,11 +93,11 @@ func (h *handlers) CachedList(ctx *fiber.Ctx) error {
 
 	opts := getListOptions(ctx)
 
-	total, err := h.cache.Get(ctx.Context(), fmt.Sprintf("%s/meta/total?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset)).Int()
+	total, err := h.cache.Get(ctx.Context(), cacheGoodsListKey+"/meta/total").Int()
 	if err != nil {
 		return ctx.Next()
 	}
-	removed, err := h.cache.Get(ctx.Context(), fmt.Sprintf("%s/meta/removed?limit=%d&offset=%d", cacheGoodsListKey, opts.Limit, opts.Offset)).Int()
+	removed, err := h.cache.Get(ctx.Context(), cacheGoodsListKey+"/meta/removed").Int()
 	if err != nil {
 		return ctx.Next()
 	}
