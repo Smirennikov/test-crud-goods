@@ -10,7 +10,7 @@ The data layer consists of further repositories:
 - Logs (ClickHouse)
 
 The business logic consists of handlers:
-- /goods
+- /api/v1/goods
   - /create (POST)
   - /list (GET) (cached)
   - /update (PATCH)
