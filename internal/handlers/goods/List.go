@@ -13,9 +13,11 @@ import (
 )
 
 const (
-	defaultLimit      = 10
-	defaultOffset     = 1
-	cacheGoodsListKey = "/goods/list"
+	defaultLimit             = 10
+	defaultOffset            = 1
+	cacheGoodsListKey        = "/goods/list"
+	cacheGoodsListTotalKey   = cacheGoodsListKey + "/meta/total"
+	cacheGoodsListRemovedKey = cacheGoodsListKey + "/meta/removed"
 )
 
 func (h *handlers) List(ctx *fiber.Ctx) error {
@@ -61,13 +63,13 @@ func (h *handlers) List(ctx *fiber.Ctx) error {
 
 	h.cache.Set(
 		ctx.Context(),
-		cacheGoodsListKey+"/meta/total",
+		cacheGoodsListTotalKey,
 		meta.Total,
 		time.Minute,
 	)
 	h.cache.Set(
 		ctx.Context(),
-		cacheGoodsListKey+"/meta/removed",
+		cacheGoodsListRemovedKey,
 		meta.Removed,
 		time.Minute,
 	)
@@ -93,11 +95,11 @@ func (h *handlers) CachedList(ctx *fiber.Ctx) error {
 
 	opts := getListOptions(ctx)
 
-	total, err := h.cache.Get(ctx.Context(), cacheGoodsListKey+"/meta/total").Int()
+	total, err := h.cache.Get(ctx.Context(), cacheGoodsListTotalKey).Int()
 	if err != nil {
 		return ctx.Next()
 	}
-	removed, err := h.cache.Get(ctx.Context(), cacheGoodsListKey+"/meta/removed").Int()
+	removed, err := h.cache.Get(ctx.Context(), cacheGoodsListRemovedKey).Int()
 	if err != nil {
 		return ctx.Next()
 	}
@@ -108,7 +110,7 @@ func (h *handlers) CachedList(ctx *fiber.Ctx) error {
 
 	var list []models.Good
 	for _, goodKey := range strings.Split(goodIDs, ",") {
-		result, err := h.cache.Get(ctx.Context(), "/goods/list?"+goodKey).Bytes()
+		result, err := h.cache.Get(ctx.Context(), cacheGoodsListKey+"?"+goodKey).Bytes()
 		if err != nil {
 			return ctx.Next()
 		}

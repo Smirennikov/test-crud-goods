@@ -37,6 +37,8 @@ func (h *handlers) Remove(ctx *fiber.Ctx) error {
 	if err := h.updateCache(*good); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
+	h.cache.Incr(ctx.Context(), cacheGoodsListRemovedKey)
+
 	if err := h.logEvent(good.GetLogEvent()); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(errors.TryAgainErr)
 	}
