@@ -5,7 +5,7 @@ import (
 	"test-crud-goods/internal/models"
 )
 
-func (r *Logs) SendBatch(ctx context.Context, batchLogs []models.GoodLogEvent) error {
+func (r *logs) SendBatch(ctx context.Context, batchLogs []models.GoodLogEvent) error {
 	batch, err := r.db.PrepareBatch(ctx,
 		"INSERT INTO goods_logs(Id, ProjectId, Name, Description, Priority, Removed, EventTime)",
 	)

@@ -5,7 +5,7 @@ import (
 	"test-crud-goods/internal/models"
 )
 
-func (r *Goods) Create(ctx context.Context, good models.Good) (id *int, err error) {
+func (r *goods) Create(ctx context.Context, good models.Good) (id *int, err error) {
 
 	row := r.db.QueryRow(ctx, `
 		WITH goods_priority AS (

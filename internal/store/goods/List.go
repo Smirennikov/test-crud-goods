@@ -9,7 +9,7 @@ import (
 	"test-crud-goods/internal/models"
 )
 
-func (r *Goods) List(ctx context.Context, filter models.GoodsFilter, options models.GoodsOptions) (goods []models.Good, err error) {
+func (r *goods) List(ctx context.Context, filter models.GoodsFilter, options models.GoodsOptions) (goods []models.Good, err error) {
 
 	query := `
 		SELECT g.id, g.project_id, g.name, g.description, g.priority, g.removed, g.created_at FROM goods g

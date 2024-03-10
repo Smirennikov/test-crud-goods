@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *Goods) Update(ctx context.Context, good models.Good) error {
+func (r *goods) Update(ctx context.Context, good models.Good) error {
 
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {

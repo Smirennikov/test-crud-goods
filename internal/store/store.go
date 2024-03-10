@@ -17,10 +17,6 @@ func New(goods goodsRepository, logs logsRepository) *Store {
 	}
 }
 
-type logsRepository interface {
-	SendBatch(ctx context.Context, batchLogs []models.GoodLogEvent) error
-}
-
 type goodsRepository interface {
 	Create(ctx context.Context, good models.Good) (id *int, err error)
 
@@ -29,4 +25,8 @@ type goodsRepository interface {
 
 	Update(ctx context.Context, good models.Good) error
 	Reprioritize(ctx context.Context, curPriority, newPriority int) error
+}
+
+type logsRepository interface {
+	SendBatch(ctx context.Context, batchLogs []models.GoodLogEvent) error
 }

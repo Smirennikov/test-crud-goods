@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *Goods) Reprioritize(ctx context.Context, curPriority, newPriority int) error {
+func (r *goods) Reprioritize(ctx context.Context, curPriority, newPriority int) error {
 
 	rows, err := r.db.Query(ctx, "SELECT g.id, g.project_id FROM goods g WHERE g.priority >= $1 ORDER BY priority", curPriority)
 	if err != nil {
